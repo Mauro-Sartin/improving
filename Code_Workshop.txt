@@ -1,0 +1,352 @@
+
+#-----------------------------------------------------
+# ANALYZER
+#-----------------------------------------------------
+
+GET /_analyze
+{
+  "analyzer" : "standard",
+  "text" : "I can search more with elastic"
+}
+
+
+GET /_analyze
+{
+  "analyzer" : "english",
+  "text" : "I can search more with elastic"
+}
+
+
+#-----------------------------------------------------
+# TOKEN SEARCH
+#-----------------------------------------------------
+GET kibana_sample_data_flights/_search
+{
+  "_source": [
+    "Carrier",
+    "DestCityName"
+  ],
+  "query": {
+    "match": {
+      "Carrier": "Kibama"
+    }
+  }
+}
+
+#-----------------------------------------------------
+# TOKEN SEARCH
+#-----------------------------------------------------
+GET kibana_sample_data_flights/_search
+{
+  "_source": [
+    "Carrier",
+    "DestCityName"
+  ],
+  "query": {
+    "match_bool_prefix": {
+      "Carrier": "Kibana"
+    }
+  }
+}
+
+#-----------------------------------------------------
+# RANGE SEARCH
+#-----------------------------------------------------
+GET kibana_sample_data_flights/_search
+{
+  "query": {
+    "range": {
+      "FlightDelayMin": {
+        "gte": 300
+      }
+    }
+  }
+}
+
+
+#-----------------------------------------------------
+# AGGREGATION QUERY
+#-----------------------------------------------------
+GET kibana_sample_data_flights/_search
+{
+  "size": 0,
+  "aggs": {
+    "Carrier_Name": {
+      "terms": {
+        "field": "Carrier"
+      }
+    }
+  }
+}
+
+#-----------------------------------------------------
+# AGGREGATION QUERY
+#-----------------------------------------------------
+GET kibana_sample_data_flights/_search
+{
+  "size": 0,
+  "aggs": {
+    "Carrier_Name": {
+      "terms": {
+        "field": "Carrier"
+      },
+      "aggs": {
+        "OriginCity": {
+          "terms": {
+            "field": "OriginCityName"
+          }
+        }
+      }
+    }
+  }
+}
+
+GET kibana_sample_data_flights/_search
+{
+  "size": 0,
+  "aggs": {
+    "Carrier_Name": {
+      "terms": {
+        "field": "Carrier"
+      },
+      "aggs": {
+        "DeplayTime_AVG": {
+          "avg": {
+            "field": "FlightDelayMin"
+          }
+        },
+        "DeplayTime_MIN": {
+          "min": {
+            "field": "FlightDelayMin"
+          }
+        },
+        "DeplayTime_MAX": {
+          "max": {
+            "field": "FlightDelayMin"
+          }
+        }        
+      }
+    }
+  }
+}
+
+
+
+
+
+
+GET kibana_sample_data_ecommerce/_mapping
+
+#-----------------------------------------------------
+# TEXT SEACH
+#-----------------------------------------------------
+
+GET kibana_sample_data_ecommerce/_search
+{
+  "_source": [ "customer_first_name", "customer_last_name" ]
+}
+
+#-----------------------------------------------------
+# TEXT SEARCH
+#-----------------------------------------------------
+GET kibana_sample_data_ecommerce/_search
+{
+  "_source": [
+    "customer_last_name",
+    "customer_first_name"
+  ],
+  "query": {
+    "match": {
+      "customer_first_name": "Eddie"
+    }
+  }
+}
+
+#-----------------------------------------------------
+# TEXT SEARCH
+#-----------------------------------------------------
+GET kibana_sample_data_ecommerce/_search
+{
+  "_source": [
+    "customer_last_name",
+    "customer_first_name"
+  ],
+  "query": {
+    "match_bool_prefix": {
+      "customer_first_name": "Eddie"
+    }
+  }
+}
+
+
+GET kibana_sample_data_ecommerce/_search
+
+
+#-----------------------------------------------------
+# FUZZY SEARCH
+#-----------------------------------------------------
+GET kibana_sample_data_ecommerce/_search
+{
+  "_source": [
+    "customer_last_name",
+    "customer_first_name"
+  ],
+  "query": {
+    "match": {
+      "customer_first_name": {
+        "query": "Eddie",
+        "fuzziness": "AUTO"
+      }
+    }
+  }
+}
+
+
+#-----------------------------------------------------
+# WILDCARD SEARCH
+#-----------------------------------------------------
+GET kibana_sample_data_ecommerce/_search
+{
+  "_source": [
+    "customer_last_name",
+    "customer_first_name"
+  ],
+  "query": {
+    "wildcard": {
+      "customer_last_name": {
+        "value": "*pson",
+        "boost": 1,
+        "rewrite": "constant_score_blended"
+      }
+    }
+  },
+  "aggs": {
+    "LastName": {
+      "terms": {
+        "field": "customer_last_name.keyword"
+      }
+    }
+  }
+}
+
+
+
+#-----------------------------------------------------
+# CREATE MY OWN INDEX
+#-----------------------------------------------------
+
+PUT my_own_name
+{
+  "settings": {
+    "number_of_shards": 1,
+    "number_of_replicas": 1
+  },
+  "mappings": {
+    "properties": {
+      "code": {
+        "type": "keyword"
+      },
+      "first_name": {
+        "type": "text",
+        "fields": {
+          "keyword": {
+            "type": "keyword"
+          }
+        }
+      },
+      "last_name": {
+        "type": "text",
+        "fields": {
+          "keyword": {
+            "type": "keyword"
+          }
+        }
+      }
+    }
+  }
+}
+
+
+
+#-----------------------------------------------------
+# CREATE MY OWN INDEX TEMPLATE
+#-----------------------------------------------------
+
+PUT _index_template/my_index_template
+{
+  "template": {
+    "settings": {
+      "number_of_shards": 1,
+      "number_of_replicas": 1
+    },
+    "mappings": {
+      "properties": {
+        "code": {
+          "type": "keyword"
+        },
+        "first_name": {
+          "type": "text",
+          "fields": {
+            "keyword": {
+              "type": "keyword"
+            }
+          }
+        },
+        "last_name": {
+          "type": "text",
+          "fields": {
+            "keyword": {
+              "type": "keyword"
+            }
+          }
+        }
+      }
+    }
+  },
+  "index_patterns": [ "my_index_*"  ]
+  
+}
+
+#-----------------------------------------------------
+# ADD SOME DATA
+#-----------------------------------------------------
+POST my_index_mauro/_doc
+{
+  "code" : "0001",
+  "first_name" : "Mauro",
+  "last_name" : "Sartin"  
+}
+
+
+GET my_index_mauro/_mapping
+
+GET my_index_mauro/_search
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
